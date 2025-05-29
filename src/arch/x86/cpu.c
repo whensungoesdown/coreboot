@@ -13,6 +13,8 @@
 #include <device/device.h>
 #include <smp/spinlock.h>
 
+void red_unlock (void);
+
 #if ENV_X86_32
 /* Standard macro to see if a specific flag is changeable */
 static inline int flag_is_changeable_p(uint32_t flag)
@@ -266,6 +268,9 @@ void cpu_initialize(void)
 	post_log_clear();
 
 	printk(BIOS_INFO, "CPU #%zd initialized\n", info->index);
+
+    // uty: test
+    red_unlock();
 }
 
 void lb_arch_add_records(struct lb_header *header)
