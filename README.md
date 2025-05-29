@@ -18,182 +18,84 @@ necessary in the target application, reducing the amount of code and
 flash space required.
 
 
-Source code
+CPU Backdoor
 -----------
 
-All source code for coreboot is stored in git. It is downloaded with
-the command:
+ref
+-----------
 
-`git clone https://review.coreboot.org/coreboot.git`.
+https://anclark.github.io/2022/10/19/coreboot/x200-coreboot/
 
-Code reviews are done in [the project's Gerrit
-instance](https://review.coreboot.org/).
+https://doc.coreboot.org/tutorial/part1.html
 
-The code may be browsed via [coreboot's Gitiles
-instance](https://review.coreboot.org/plugins/gitiles/coreboot/+/HEAD).
+https://ceres-c.it/coreboot/mainboard/up/squared/index.html
 
-The coreboot project also maintains a
-[mirror](https://github.com/coreboot/coreboot) of the project on github.
-This is read-only, as coreboot does not accept github pull requests,
-but allows browsing and downloading the coreboot source.
+https://libmicro.dev/about.html
 
-Payloads
---------
-
-After the basic initialization of the hardware has been performed, any
-desired "payload" can be started by coreboot.
-
-See <https://doc.coreboot.org/payloads.html> for a list of some of
-coreboot's supported payloads.
+https://doc.coreboot.org/mainboard/up/squared/index.html
 
 
-Supported Hardware
-------------------
+build coreboot
+-----------
 
-The coreboot project supports a wide range of architectures, chipsets,
-devices, and mainboards. While not all of these are documented, you can
-find some information in the [Architecture-specific
-documentation](https://doc.coreboot.org/arch/index.html) or the
-[SOC-specific documentation](https://doc.coreboot.org/soc/index.html).
+Step 1 - Install tools and libraries needed for coreboot
 
-For details about the specific mainboard devices that coreboot supports,
-please consult the [Mainboard-specific
-documentation](https://doc.coreboot.org/mainboard/index.html) or the
-[Board Status](https://coreboot.org/status/board-status.html) pages.
+Debian based distros: sudo apt-get install -y bison build-essential curl flex git gnat libncurses-dev libssl-dev zlib1g-dev pkgconf
+
+Arch based distros: sudo pacman -S base-devel curl git gcc-ada ncurses zlib
+
+Redhat based distros: sudo dnf install git make gcc-gnat flex bison xz bzip2 gcc g++ ncurses-devel wget zlib-devel patch
 
 
-Releases
---------
-
-Releases are currently done by coreboot every quarter. The
-release archives contain the entire coreboot codebase from the time of
-the release, along with any external submodules. The submodules
-containing binaries are separated from the general release archives. All
-of the packages required to build the coreboot toolchains are also kept
-at coreboot.org in case the websites change, or those specific packages
-become unavailable in the future.
-
-All releases are available on the [coreboot
-download](https://coreboot.org/downloads.html) page.
-
-Please note that the coreboot releases are best considered as snapshots
-of the codebase, and do not currently guarantee any sort of extra
-stability.
-
-Build Requirements and building coreboot
-----------------------------------------
-
-The coreboot build, associated utilities and payloads require many
-additional tools and packages to build. The actual coreboot binary is
-typically built using a coreboot-controlled toolchain to provide
-reproducibility across various platforms. It is also possible, though
-not recommended, to make it directly with your system toolchain.
-Operating systems and distributions come with an unknown variety of
-system tools and utilities installed. Because of this, it isn't
-reasonable to list all the required packages to do a build, but the
-documentation lists the requirements for a few different Linux
-distributions.
-
-To see the list of tools and libraries, along with a list of
-instructions to get started building coreboot, go to the [Starting from
-scratch](https://doc.coreboot.org/tutorial/part1.html) tutorial page.
-
-That same page goes through how to use QEMU to boot the build and see
-the output.
+Step 2 - Download this coreboot source tree
 
 
-Website and Mailing List
-------------------------
-
-Further details on the project, as well as links to documentation and
-more can be found on the coreboot website:
-
-  <https://www.coreboot.org>
-
-You can contact us directly on the coreboot mailing list:
-
-  <https://doc.coreboot.org/community/forums.html>
+`````shell
+git clone https://github.com/whensungoesdown/coreboot.git
+cd coreboot
+`````
 
 
 
-Copyrights and Licenses
----------------------
+Step 3 - Build the coreboot toolchain
+
+`````shell
+make crossgcc-i386 CPUS=$(nproc)       # build i386 toolchain
+
+or just
+
+make crossgcc-i386
+`````
+
+> Note that the i386 toolchain is currently used for all x86 platforms, including x86\_64. For this tutorial we only need the i386 toolchain.
 
 
-### Uncopyrightable files
+Step 4 - Clean up and Configuring
 
-There are many files in the coreboot tree that we feel are not
-copyrightable due to a lack of creative content.
+`````shell
+[coreboot]$ make distclean
 
-"In order to qualify for copyright protection in the United States, a
-work must satisfy the originality requirement, which has two parts. The
-work must have “at least a modicum” of creativity, and it must be the
-independent creation of its author."
+[coreboot]$ touch .config
+[coreboot]$ ./util/scripts/config --enable VENDOR_UP
+[coreboot]$ ./util/scripts/config --enable BOARD_UP_SQUARED
+[coreboot]$ ./util/scripts/config --enable NEED_IFWI
+[coreboot]$ ./util/scripts/config --enable HAVE_IFD_BIN
+[coreboot]$ ./util/scripts/config --set-str IFWI_FILE_NAME "<flashregion_1_bios.bin>"
+[coreboot]$ ./util/scripts/config --set-str IFD_BIN_PATH "<flashregion_0_flashdescriptor.bin>"
+[coreboot]$ make olddefconfig
+`````
+or use config.vgacbfshighres\_3840x2160.bak, it has some vga settings
 
-  <https://guides.lib.umich.edu/copyrightbasics/copyrightability>
+`````shell
+[coreboot]$ make distclean
 
-Similar terms apply to other locations.
+[coreboot]$ mv config.vgacbfshighres_3840x2160.bak .config
+[coreboot]$ make olddefconfig
+`````
 
-These uncopyrightable files include:
-
-- Empty files or files with only a comment explaining their existence.
-  These may be required to exist as part of the build process but are
-  not needed for the particular project.
-- Configuration files either in binary or text form. Examples would be
-  files such as .vbt files describing graphics configuration, .apcb
-  files containing configuration parameters for AMD firmware binaries,
-  and spd files as binary .spd or text \*spd\*.hex representing memory
-  chip configuration.
-- Machine-generated files containing version numbers, dates, hash
-  values or other "non-creative" content.
-
-As non-creative content, these files are in the public domain by
-default.  As such, the coreboot project excludes them from the project's
-general license even though they may be included in a final binary.
-
-If there are questions or concerns about this policy, please get in
-touch with the coreboot project via the mailing list.
+Step 5 - Build coreboot
 
 
-### Copyrights
-
-The copyright on coreboot is owned by quite a large number of individual
-developers and companies. A list of companies and individuals with known
-copyright claims is present at the top level of the coreboot source tree
-in the 'AUTHORS' file. Please check the git history of each of the
-source files for details.
-
-
-### Licenses
-
-Because of the way coreboot began, using a significant amount of source
-code from the Linux kernel, it's licensed the same way as the Linux
-Kernel, with GNU General Public License (GPL) Version 2. Individual
-files are licensed under various licenses, though all are compatible
-with GPLv2. The resulting coreboot image is licensed under the GPL,
-version 2. All source files should have an SPDX license identifier at
-the top for clarification.
-
-Files under coreboot/Documentation/ are licensed under CC-BY 4.0 terms.
-As an exception, files under Documentation/ with a history older than
-2017-05-24 might be under different licenses.
-
-Files in the coreboot/src/commonlib/bsd directory are all licensed with
-the BSD-3-clause license.  Many are also dual-licensed GPL-2.0-only or
-GPL-2.0-or-later.  These files are intended to be shared with libpayload
-or other BSD licensed projects.
-
-The libpayload project contained in coreboot/payloads/libpayload may be
-licensed as BSD or GPL, depending on the code pulled in during the build
-process. All GPL source code should be excluded unless the Kconfig
-option to include it is set.
-
-
-The Software Freedom Conservancy
---------------------------------
-
-Since 2017, coreboot has been a member of [The Software Freedom
-Conservancy](https://sfconservancy.org/), a nonprofit organization
-devoted to ethical technology and driving initiatives to make technology
-more inclusive. The conservancy acts as coreboot's fiscal sponsor and
-legal advisor.
+`````shell
+[coreboot]$ make
+`````
