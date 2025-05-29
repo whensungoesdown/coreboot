@@ -21,18 +21,6 @@ flash space required.
 CPU Backdoor
 -----------
 
-ref
------------
-
-https://anclark.github.io/2022/10/19/coreboot/x200-coreboot/
-
-https://doc.coreboot.org/tutorial/part1.html
-
-https://ceres-c.it/coreboot/mainboard/up/squared/index.html
-
-https://libmicro.dev/about.html
-
-https://doc.coreboot.org/mainboard/up/squared/index.html
 
 
 build coreboot
@@ -60,15 +48,47 @@ cd coreboot
 Step 3 - Build the coreboot toolchain
 
 `````shell
-make crossgcc-i386 CPUS=$(nproc)       # build i386 toolchain
-
+[coreboot]$ make crossgcc-i386 CPUS=$(nproc)       # build i386 toolchain
+`````
 or just
 
-make crossgcc-i386
+`````shell
+[coreboot]$ make crossgcc-i386
 `````
 
 > Note that the i386 toolchain is currently used for all x86 platforms, including x86\_64. For this tutorial we only need the i386 toolchain.
 
+Step 3.1 - Extract flashregion\_1\_bios.bin flashregion\_0\_flashdescriptor.bin
+
+````shell
+[coreboot]$ cd util/ifdtool
+[ifdtool]$ make
+
+[ifdtool]$ sudo cp ifdtool /usr/bin/
+````
+
+Download https://libmicro.dev/hax.bin or use bins/hax.bin
+
+`````shell
+[extracted_libmicro]$ ifdtool -x hax.bin
+Warning: No platform specified. Output may be incomplete
+File hax.bin is 16777216 bytes
+Peculiar firmware descriptor, assuming Ibex Peak compatibility.
+  Flash Region 0 (Flash Descriptor): 00000000 - 00000fff
+  Flash Region 1 (BIOS): 00001000 - 00efefff
+  Flash Region 2 (Intel ME): 00fff000 - 00000fff (unused)
+  Flash Region 3 (GbE): 00fff000 - 00000fff (unused)
+  Flash Region 4 (Platform Data): 00fff000 - 00000fff (unused)
+
+
+[extracted_libmicro]$ ll -h
+total 15M
+drwxr-xr-x 1 u u 4.0K May 29 16:17 ./
+drwxr-xr-x 1 u u 4.0K May 29 16:14 ../
+-rw-r--r-- 1 u u 4.0K May 29 16:17 flashregion_0_flashdescriptor.bin
+-rw-r--r-- 1 u u  15M May 29 16:17 flashregion_1_bios.bin
+
+`````
 
 Step 4 - Clean up and Configuring
 
@@ -99,3 +119,23 @@ Step 5 - Build coreboot
 `````shell
 [coreboot]$ make
 `````
+
+
+Step 6 - Fix VGA
+
+
+https://whensungoesdown.github.io/coreboot_upsquaredpro
+
+
+ref
+-----------
+
+https://anclark.github.io/2022/10/19/coreboot/x200-coreboot/
+
+https://doc.coreboot.org/tutorial/part1.html
+
+https://ceres-c.it/coreboot/mainboard/up/squared/index.html
+
+https://libmicro.dev/about.html
+
+https://doc.coreboot.org/mainboard/up/squared/index.html
