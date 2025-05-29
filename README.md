@@ -51,7 +51,7 @@ Step 2 - Download this coreboot source tree
 
 
 `````shell
-git clone https://github.com/whensungoesdown/coreboot.git
+git clone --recursive https://github.com/whensungoesdown/coreboot.git
 cd coreboot
 `````
 
