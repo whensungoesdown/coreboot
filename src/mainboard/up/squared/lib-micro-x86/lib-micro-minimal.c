@@ -160,9 +160,13 @@ void hook_match_and_patch(uint32_t entry_idx, uint32_t ucode_addr, uint32_t patc
 void wrmrs_enable_debug(void) {
 	/* Enable ucode debug */
 	unsigned int low = 0, high = 0;
-	__asm__ volatile ("wrmsr" : : "a" (MAGIC_UNLOCK), "d" (0), "c" (APL_UCODE_CRBUS_UNLOCK));
 	__asm__ volatile ("rdmsr" : "=a" (low), "=d" (high) : "c" (APL_UCODE_CRBUS_UNLOCK));
-	if (high != 0 || low != MAGIC_UNLOCK) {
+
+    low |= MAGIC_UNLOCK;
+	__asm__ volatile ("wrmsr" : : "a" (low), "d" (0), "c" (APL_UCODE_CRBUS_UNLOCK));
+
+	__asm__ volatile ("rdmsr" : "=a" (low), "=d" (high) : "c" (APL_UCODE_CRBUS_UNLOCK));
+	if (high != 0 || 0 == (low & MAGIC_UNLOCK)) {
 		die("\tFailed to write APL_UCODE_CRBUS_UNLOCK MSR\n");
 	}
 }
